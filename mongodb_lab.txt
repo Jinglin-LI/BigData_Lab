@@ -1,0 +1,151 @@
+download mongobooster
+
+db.restaurants.find(cuisine: "Italian", borough: "Manhattan"}, {name: 1})
+
+
+6. Display just the names of those restaurants where the cuisine is Italian and who have
+db.restaurants.find(cuisine: "Italian", grades_grade: "A"}, {name: 1}).count()
+
+
+7. 
+db.restaurants.distinct("cuisine").length
+
+8. Find dthe count of restaurants grouped by borough:
+db.restaurants.aggregate {
+	[
+	{ $group: {"_id" : "$cuisine", "count":{$sum:1}}]
+}
+
+db.restaurants.aggregate {
+	[
+		{ $match : {"cuisine": "Chinese"}
+	]
+
+}
+
+command:
+hbase shell 
+create 'customer', {NAME => 'addr'}, {NAME=> 'order'}
+hbase(main):003 >  put 'customer', ''
+hbase(main):003 >  get 'customer' 'jsmith'
+
+
+
+notes:
+HBase 
+	-create table_name col_fam1
+	-put command
+	put 'table_name' 'rowid' 'col_fam1:col1' 'value'
+	
+	-get command
+	get 'table_name' 'rowid'
+when to use HBase
+	- works natively with Hadoop
+	- uses Hadoop storage
+	- lower latency than Hadoop
+	- used for random read/write
+	- timestamping
+	- useful for structured (tabular) and semi-structured date
+	- auto-scaling
+	
+Disadvantages:
+	-two singles points of failure
+		- namenode
+		- HMaster
+	- cannot guarantee  5 9'S
+	
+Cassandra:
+	- p2p (no master)
+	- massively linearly scalable
+		(2x node -> 2x throughput)
+	- architecture is complex, developer doesn't need to be aware of distribution
+		CQL (!SQL)
+	- 4 ARCHITECTURE COMPONENTS:
+		- node
+		- rack
+		- data center
+		- cluster
+	- p2p
+		node settings:
+			cluster_name
+			seeds -> initial peers that tell you about network ...
+			listen_address
+
+			
+			
+Spark- Streaming, ML
+pig
+NoSQL
+cASSANDRA
+hbasehIVE
+In
+
+HDFS
+-FUNCTIONS OF m r c p
+
+MapReduce
+- signatures of mapper, reducers
+- job task difference
+some code snippets and their outputs
+custom partitioner
+how is state information between calls maintained
+how to reduce key-value traffic in network
+
+joins
+-map side
+reduce side
+memcached joins
+
+
+Spark            
+concept of RDD
+Transformation and Actions
+Group/ GroupByKey | Reduce/ReduceByKey
+Joins with Spark
+Lean various contexts: sparkcontext, sqlcontext, streamingcontext
+In which case whould you not prefer spark
+
+
+Spark
+	-dataframes
+MLlib:
+	(use of pca)
+	group related instance
+	library find frequent iterms
+	spark streaming
+		window size
+		interval length
+
+
+
+Pig (spark to pig command how to convert)
+Understand purpose / Pig Latin : dataflow modeling language
+Understand Group / COGROUP cONSTRUCTS
+How to do Joins
+Given Pig code, find Spark equivalents
+Flatten command
+
+
+Hive
+Understand schema, which features does Hive Schema support
+Hive metastore
+
+Hadoop data technologies
+CAP theorem
+NoSQL databases
+MongoDB
+	-BASIC CONSTRUCTS E.G. data models, collections, documents, joins
+	
+HBase
+data modelingcolumn families
+types of keys -> what 
+
+Cassandra
+architecture, data modele
+
+Impala
+Execution modele
+how are various daemons used
+How does it achieve blazing fast results
+
+

@@ -1,0 +1,58 @@
+
+
+
+2
+val filePath = "file:/tep/car-milage.csv"
+3
+val cars = spark.read.option("header", "true").option("inferSchema", "true").csv(filePath)
+
+4.
+cars.first
+:: Row = [18.9, 350.0。。。]
+
+or cars.columns(0)
+res: String = mpg
+
+or cars.printSchema()
+
+
+/!!/
+cars.count()
+res: Long = 32
+
+println("Cars has " + cars.count() + " number of rows")
+
+cars.take(5)
+
+display(cars.take(5))
+
+display(cars)
+
+
+
+cars.show()
+// just show the data, not columns
+display(cars)         // it will show up
+
+
+
+cars.describe("mpg", "hp", "weight", "automatic").show()
+
+cars.groupBy("automatic").avg("mpg").show()
+
+cars.groupBy("automatic").avg("mpg", "hp", "length").show()
+
+cars.groupBy("automatic").max("mpg", "hp", "length").show()
+
+
+
+import org.apache.spark.sql.functions.(avg,mean) (agg means aggregation)
+cars.agg(avg(cars("mpg")), mean(cars("torque")) ).show()
+
+
+val cor = cars.stat.corr("hp","weight") 
+println("hp to weight : Correlation = %.4f".format(cor))
+
+
+
+

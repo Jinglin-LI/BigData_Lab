@@ -1,0 +1,64 @@
+val input = sc.parallelize(List(1, 2, 3, 4)) 
+val result = input.map(x => x * x) 
+println(result.collect().mkString(","))
+
+// difference between map and flatmap
+val lines = sc.parallelize(List("hello world", "hi")) 
+val words = lines.map(line => line.split(" ")) 
+words.first() // returns "hello, world"
+
+// lines: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[10] at parallelize at <console>:37
+// words: org.apache.spark.rdd.RDD[Array[String]] = MapPartitionsRDD[11] at map at <console>:38
+// res4: Array[String] = Array(hello, world)
+// res42: Array[Array[String]] = Array(Array(hello, world), Array(hi))
+
+val lines = sc.parallelize(List("hello world", "hi")) 
+val words = lines.flatMap(line => line.split(" ")) 
+words.first() // returns "hello"
+
+// lines: org.apache.spark.rdd.RDD[String] = ParallelCollectionRDD[12] at parallelize at <console>:37
+// words: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[13] at flatMap at <console>:38
+// res5: String = hello
+// res45: Array[String] = Array(hello, world, hi)
+
+
+import sys.process._ 
+"wget -r --no-parent --convert-links -nH -nd -P /tmp http://www.gutenberg.org/cache/epub/1661/pg1661.txt" !!
+
+/* If the above doesn't work, manually upload files */
+
+val inputRDD = sc.textFile("file:///tmp/pg1661.txt")
+val sherlockRDD = inputRDD.filter(line => line.contains("Sherlock"))
+sherlockRDD.count
+sherlockRDD.first
+sherlockRDD.take(10)
+
+// Wordcount on above
+inputRDD.flatMap(line => line.split(" ")).map(word => (word, 1)).reduceByKey(_ + _)
+
+
+//---- pair RDD examples -------
+val rdd = sc.parallelize(Array((1, 2), (3, 4), (3, 6)))
+// reduce keeping key
+rdd.reduceByKey((x, y) => x + y)
+rdd.groupByKey()
+rdd.mapValues(x => x+1).collect
+rdd.keys
+rdd.values
+rdd.sortByKey()
+
+//--- working with 2 RDDs -----
+val other = sc.parallelize(Array((3, 9)))
+// remove elements from rdd by subracting (removing) keys
+rdd.subtractByKey(other)
+rdd.join(other)
+rdd.rightOuterJoin(other)
+rdd.leftOuterJoin(other)
+rdd.cogroup(other)
+
+
+
+
+
+
+

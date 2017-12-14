@@ -1,0 +1,92 @@
+1. Load the following datasets
+
+divs = load '/pigData/NYSE_dividends' as (exchange:chararray, symbol:chararray,date:chararray, dividends:float);
+daily = load '/pigData/NYSE_daily' as (exchange:chararray, symbol:chararray, date:chararray, open:float, high:float, low:float, close:float, volume:int, adj_close:float);
+-- The following also works, untyped
+--divs = load '/pigData/NYSE_dividends' as (exchange, symbol, date, dividends); 
+--daily = load '/pigData/NYSE_daily' as (exchange, symbol, date, open, high, low, close, volume, adj_close); 
+players = load '/pigData/baseball' as (name:chararray, team:chararray, position:bag{t:(p:chararray)}, bat:map[]);
+crawl = load '/pigData/webcrawl' as (url, pageid, outpages:bag{t:(p:chararray)} );
+Note: These files can also be downloaded from http://www.utdallas.edu/~axn112530/cs6350/pigData/
+
+
+2. From the NYSE_daily file, find the difference between close and open price for each stock for each day
+
+grunt> diff = foreach daily generate symbol, (close-open) as d;
+grunt> describe diff;
+
+3. From the NYSE_dividends file, find the total dividends paid by each company so far
+
+grunt> grpd = group divs by symbol;
+
+4. From the NYSE_dividends file, find the total average dividend paid by those companies whose name starts with CM
+
+grunt> startswithcm = filter divs by symbol matches 'CM.*';
+grunt> grpd = group startswithcm by symbol;
+grunt> avgs = foreach grpd generate group, AVG(startswithcm.dividends);
+
+5. From the NYSE_daily, generate a listing of all the unique stocks
+
+grunt> stocks = FOREACH daily GENERATE symbol;
+grunt> ord = ORDER stocks BY symbol;
+grunt> uniq = DISTINCT ord;
+
+6. Join the two tables on the symbol key and then filter the joined relation by those stocks whose closing price is > 10. Then create a random 10% sample of the output and display on screen.
+
+grunt> fltrd = filter daily by close > 10;
+grunt> jnd = join fltrd by symbol, divs by symbol;
+grunt> jnd1 = sample jnd 0.1;
+
+7. For the NYSE_daily dataset group by the symbol and find the average daily close for each group. Then order the data using average closing price in a descending way.
+You have to use a 10 reducers for the average calculation and 2 reducers for sorting.
+
+grunt> bysymbl = group daily by symbol parallel 10;
+grunt> average = foreach bysymbl generate group, AVG(daily.close) as avg;
+grunt> sorted = order average by avg desc parallel 2;
+
+
+8. Register the piggybank.jar file from '/usr/local/pig-0.13.0/lib/piggybank.jar' and then generate the symbol and reverse of every symbol
+
+grunt> register '/usr/local/pig-0.13.0/lib/piggybank.jar';
+grunt> backwards = foreach divs generate symbol, org.apache.pig.piggybank.evaluation.string.Reverse(symbol);
+
+
+9. Look at the baseball dataset. Use describe command. What do you think is the datatype of the position field. Flatten this dataset and output the name of player and number of positions in which he has played. The output should be ordered in descending order of number of positions.
+
+
+grunt> countOfPos = foreach players generate name, flatten(position) as pos;
+grunt> grp = group countOfPos by name;
+grunt> grp1 = foreach grp generate group, COUNT(countOfPos.pos) as cnt;
+grunt> grp2 = order grp1 by cnt desc;
+
+
+10. Using the baseball dataset, first flatten the positions column and then generate a listing of the count of players for each position in a descending order.
+
+grunt> pos = foreach players  generate name, flatten(position) as position;
+grunt> bypos = group pos by position;
+grunt> cnt = foreach by pos generate group, pos.position as cntPos;
+grunt> cnt1 = order cnt by cntPos desc;
+
+11. Group the NYSE_daily data by exchange and for each exchange find the count of symbols.
+
+grunt> grpd = group daily by exchange;
+grunt> uniqcnt = foreach grpd {sym = daily.symbol; uniq_sym = distinct sym; generate group, COUNT(uniq_sym);};
+
+
+12. The number of entries in the divs table is less than daily table. Join them using a fragment replicated join. Check to see if a reduce phase is needed.
+
+grunt> jnd = join daily by (exchange, symbol), divs by (exchange, symbol) using 'replicated';
+
+13. Create a co-group of daily and divs relations and find out those symbols that have never paid a dividend.
+
+grunt> grpd = cogroup daily by (exchange, symbol), divs by (exchange, symbol);
+grunt> sjnd = filter grpd by IsEmpty(divs);
+grunt> final = foreach sjnd generate flatten (daily);
+grunt> final1 = foreach final generate final.daily::symbol as sym;
+grunt> final2 = DISTINCT final1;
+
+14. Use the crawl data and find for each page the number of outlinks and number of inlinks.
+
+grunt> c1 = foreach crawl generate url, flatten(outpages) as outpage;
+grunt> grpd = group c1 by url;
+grunt> c2 = foreach grpd generate group as page, COUNT(c1.outpage) as outcount;
